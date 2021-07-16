@@ -57,12 +57,19 @@ module.exports = {
 			},
 		},
 		'⚙️': {
-			script: `npx cowsay "@nativescript/* packages will keep your ⚙️ cranking"`,
-			description: '_____________  @nativescript/*  _____________',
+			script: `npx cowsay "@finalsite/* packages will keep your ⚙️ cranking"`,
+			description: '_____________  @finalsite/*  _____________',
 		},
 		// packages
 		// build output is always in dist/packages
-		'@nativescript': {
+		'@finalsite': {
+			// @finalsite/rich-text-editor
+			'rich-text-editor': {
+				build: {
+					script: 'nx run rich-text-editor:build.all',
+					description: '@finalsite/rich-text-editor: Build',
+				},
+			},
 			'build-all': {
 				script: 'nx run all:build',
 				description: 'Build all packages',
@@ -73,10 +80,14 @@ module.exports = {
 			description: '_____________  Focus (VS Code supported)  _____________',
 		},
 		focus: {
+			'rich-text-editor': {
+				script: 'nx run rich-text-editor:focus',
+				description: 'Focus on @finalsite/rich-text-editor',
+			},
 			reset: {
 				script: 'nx run all:focus',
 				description: 'Reset Focus',
-			}
+			},
 		},
 		'.....................': {
 			script: `npx cowsay "That's all for now folks ~"`,

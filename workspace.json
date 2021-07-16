@@ -86,6 +86,47 @@
 					}
 				}
 			}
+		},
+		"rich-text-editor": {
+			"projectType": "library",
+			"schematics": {},
+			"root": "packages/rich-text-editor",
+			"sourceRoot": "packages/rich-text-editor",
+			"architect": {
+				"build": {
+					"builder": "@nrwl/node:package",
+					"options": {
+						"outputPath": "dist/packages/rich-text-editor",
+						"tsConfig": "packages/rich-text-editor/tsconfig.json",
+						"packageJson": "packages/rich-text-editor/package.json",
+						"main": "packages/rich-text-editor/index.ts",
+						"assets": [
+							"packages/rich-text-editor/*.md",
+							"packages/rich-text-editor/index.d.ts",
+							"LICENSE",
+							{
+								"glob": "**/*",
+								"input": "packages/rich-text-editor/platforms/",
+								"output": "./platforms/"
+							}
+						]
+					}
+				},
+				"build.all": {
+					"builder": "@nrwl/workspace:run-commands",
+					"options": {
+						"commands": ["nx run rich-text-editor:build", "node tools/scripts/build-finish.ts rich-text-editor"],
+						"parallel": false
+					}
+				},
+				"focus": {
+					"builder": "@nrwl/workspace:run-commands",
+					"options": {
+						"commands": ["nx g @nativescript/plugin-tools:focus-packages rich-text-editor"],
+						"parallel": false
+					}
+				}
+			}
 		}
 	},
 	"cli": {

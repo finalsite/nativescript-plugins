@@ -20,8 +20,8 @@
 			}
 		],
 		"paths": {
-			"@nativescript/*": ["packages/*"],
-			"@demo/shared": ["tools/demo/index.ts"]
+			"@demo/shared": ["tools/demo/index.ts"],
+			"@finalsite/*": ["packages/*"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]

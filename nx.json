@@ -1,5 +1,5 @@
 {
-	"npmScope": "nativescript",
+	"npmScope": "finalsite",
 	"affected": {
 		"defaultBase": "master"
 	},
@@ -21,6 +21,9 @@
 			"tags": []
 		},
 		"all": {
+			"tags": []
+		},
+		"rich-text-editor": {
 			"tags": []
 		}
 	},

@@ -14,7 +14,8 @@
 		"nativescript-theme-core": "file:../../node_modules/nativescript-theme-core",
 		"reflect-metadata": "file:../../node_modules/reflect-metadata",
 		"rxjs": "file:../../node_modules/rxjs",
-		"zone.js": "file:../../node_modules/zone.js"
+		"zone.js": "file:../../node_modules/zone.js",
+		"@finalsite/rich-text-editor": "file:../../dist/packages/rich-text-editor"
 	},
 	"devDependencies": {
 		"@angular/compiler-cli": "file:../../node_modules/@angular/compiler-cli",

@@ -1,25 +1,13 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDirs": [
-      ".",
-      "../.."
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "~/*": [
-        "src/*"
-      ],
-      "@nativescript/*": [
-        "../../dist/packages/*"
-      ],
-      "@demo/shared": [
-        "../../tools/demo/index.ts"
-      ]
-    }
-  },
-  "files": [
-    "./references.d.ts",
-    "./src/main.ts"
-  ]
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"rootDirs": [".", "../.."],
+		"baseUrl": ".",
+		"paths": {
+			"~/*": ["src/*"],
+			"@demo/shared": ["../../tools/demo/index.ts"],
+			"@finalsite/*": ["../../dist/packages/*"]
+		}
+	},
+	"files": ["./references.d.ts", "./src/main.ts"]
 }

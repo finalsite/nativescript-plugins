@@ -4,8 +4,9 @@
 	"license": "SEE LICENSE IN <your-license-filename>",
 	"repository": "<fill-your-repository-here>",
 	"dependencies": {
-		"nativescript-theme-core": "file:../../node_modules/nativescript-theme-core",
-		"@nativescript/core": "file:../../node_modules/@nativescript/core"
+		"@finalsite/rich-text-editor": "file:../../packages/rich-text-editor",
+		"@nativescript/core": "file:../../node_modules/@nativescript/core",
+		"nativescript-theme-core": "file:../../node_modules/nativescript-theme-core"
 	},
 	"devDependencies": {
 		"@nativescript/android": "7.0.1",
