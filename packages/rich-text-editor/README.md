@@ -4,6 +4,10 @@
 ns plugin add @finalsite/rich-text-editor
 ```
 
+## Goal
+
+Provides a native interface to a contenteditable region (or any web wysiwyg editor) in a webview
+
 ## Usage
 
 // TODO
