@@ -1,238 +1,143 @@
-import { Enums, Frame, Page, View, Screen } from '@nativescript/core';
+import { Enums, Frame, Page, View, Screen, Application, ScrollView, GridLayout, Label, Color } from '@nativescript/core';
 import { android as AndroidApp } from '@nativescript/core/application';
 import { ad } from '@nativescript/core/utils';
 import { RichTextEditorCommon } from './common';
 
-export class RichTextEditor extends RichTextEditorCommon {
-	private startPositionY: number;
-	private lastHeight: number;
-	private navbarHeight: number;
-	private navbarHeightWhenKeyboardOpen: number;
-	private isNavbarVisible: boolean;
-	private lastKeyboardHeight: number;
-	private onGlobalLayoutListener: android.view.ViewTreeObserver.OnGlobalLayoutListener;
-	private thePage: any;
-	private static supportVirtualKeyboardCheck;
+const ANIMATION_CURVE = Enums.AnimationCurve.cubicBezier(0.32, 0.49, 0.56, 1);
+const ANIMATION_DURATION = 370;
+const ZINDEX = 99; // zindex for webview to make sure it gets layered in front
 
-	// private onScrollChangedListener: android.view.ViewTreeObserver.OnScrollChangedListener;
+export class RichTextEditor extends RichTextEditorCommon {
+	private _lastActivityHeight: number;
+	private _initialFocusChange: boolean;
+
+	private onGlobalLayoutListener: android.view.ViewTreeObserver.OnGlobalLayoutListener;
+	private static supportVirtualKeyboardCheck;
 
 	constructor() {
 		super();
-		this.verticalAlignment = 'top';
+		this._toolbar.verticalAlignment = 'top'; // important so that the toolbar y starts at the top
 	}
 
 	onLoaded(): void {
 		super.onLoaded();
 
-		setTimeout(() => this.applyInitialPosition(), 300);
-
 		setTimeout(() => {
-			const prepFocusEvents = (forView) => {
-				forView.on('focus', () => {
-					this.hasFocus = true;
-					if (self.lastKeyboardHeight) {
-						this.showToolbar(this._toolbar);
+			this._toolbar.translateY = this.activityHeight;
+		});
+
+		this.on('focus', () => {
+			if (this.hasFocus) return;
+
+			this.hasFocus = true;
+			this._initialFocusChange = true;
+			self.notify({ eventName: 'keyboardLayoutChanged', object: self });
+		});
+		this.on('blur', () => {
+			if (!this.hasFocus) return;
+
+			this.hasFocus = false;
+			this._initialFocusChange = true;
+			self.notify({ eventName: 'keyboardLayoutChanged', object: self });
+		});
+
+		// check if we need to make layout adjustments if we're in focus
+		// keyboards can change height all willy nilly
+		this.on('keyboardLayoutChanged', () => {
+			if (this.hasFocus) {
+				if (this._initialFocusChange) {
+					this.onInitialFocus();
+				}
+
+				const toolbarHeight = this._toolbar.getMeasuredHeight() / Screen.mainScreen.scale;
+				this._toolbar.animate({
+					translate: { x: 0, y: this.activityHeight - toolbarHeight },
+					curve: ANIMATION_CURVE,
+					duration: ANIMATION_DURATION,
+				});
+				this.animate({
+					height: this.activityHeight - toolbarHeight,
+					width: Screen.mainScreen.widthDIPs,
+					curve: ANIMATION_CURVE,
+					duration: ANIMATION_DURATION,
+				}).then(() => {
+					// the height change adjusts what the ending y coordinate needs to be so check it's position after the animation and adjust
+					// TODO: there's probably a way to predict this for the animation based on the new height but I can't seem to get it right atm
+					const distanceFromTop = this.getLocationRelativeTo(this._currentPage).y;
+					if (distanceFromTop !== 0) {
+						this.translateY = this.translateY - this.getLocationRelativeTo(this._currentPage.content).y;
 					}
 				});
-
-				forView.on('blur', () => {
-					this.hasFocus = false;
-					this.hideToolbar(this._toolbar);
-				});
-			};
-
-			let pg;
-			if (Frame.topmost()) {
-				pg = Frame.topmost().currentPage;
 			} else {
-				pg = this._toolbar;
-				while (pg && !(pg instanceof Page)) {
-					pg = pg.parent;
+				if (this._initialFocusChange) {
+					this.onInitialBlur();
+					this.animate({
+						translate: { x: 0, y: 0 },
+						height: this._originalHeight,
+						width: this._originalWidth,
+						curve: ANIMATION_CURVE,
+						duration: ANIMATION_DURATION,
+					});
 				}
+
+				this._toolbar.animate({
+					translate: { x: 0, y: this.activityHeight },
+					curve: ANIMATION_CURVE,
+					duration: ANIMATION_DURATION,
+				});
 			}
-			this.thePage = pg;
-			prepFocusEvents(this._webView);
-		}, 500);
+		});
 
 		const self = this;
 
+		// TODO: this could probably be some kind of global singleton for all editor instances
 		this.onGlobalLayoutListener = new android.view.ViewTreeObserver.OnGlobalLayoutListener({
 			onGlobalLayout(): void {
-				// this can happen during livesync - no problemo
 				if (!self.android) {
 					return;
 				}
 
-				const rect = new android.graphics.Rect();
-				self.android.getWindowVisibleDisplayFrame(rect);
-
-				const newKeyboardHeight = (RichTextEditor.getUsableScreenSizeY() - rect.bottom) / Screen.mainScreen.scale;
-				if (newKeyboardHeight <= 0 && self.lastKeyboardHeight === undefined) {
-					return;
+				if (self._lastActivityHeight !== undefined && self.activityHeight !== self._lastActivityHeight) {
+					self.notify({ eventName: 'keyboardLayoutChanged', object: self });
 				}
-
-				if (newKeyboardHeight === self.lastKeyboardHeight) {
-					return;
-				}
-
-				// TODO see if orientation needs to be accounted for: https://github.com/siebeprojects/samples-keyboardheight/blob/c6f8aded59447748266515afeb9c54cf8e666610/app/src/main/java/com/siebeprojects/samples/keyboardheight/KeyboardHeightProvider.java#L163
-				self.lastKeyboardHeight = newKeyboardHeight;
-
-				if (self.hasFocus) {
-					if (newKeyboardHeight <= 0) {
-						self.hideToolbar(self._toolbar);
-					} else {
-						self.showToolbar(self._toolbar);
-					}
-				}
+				self._lastActivityHeight = self.activityHeight;
 			},
 		});
 
 		self.android.getViewTreeObserver().addOnGlobalLayoutListener(self.onGlobalLayoutListener);
 	}
 
+	get activityHeight(): number {
+		const activity = Application.android.foregroundActivity || Application.android.startActivity;
+		if (!activity) return 0;
+		const rootView = activity.findViewById(android.R.id.content);
+		if (!rootView) return 0;
+		return rootView.getHeight() / Screen.mainScreen.scale || 0;
+	}
+
 	disposeNativeView(): void {
 		super.disposeNativeView();
 		this.android.getViewTreeObserver().removeOnGlobalLayoutListener(this.onGlobalLayoutListener);
-		// this.content.android.getViewTreeObserver().removeOnScrollChangedListener(this.onScrollChangedListener);
 		this.onGlobalLayoutListener = undefined;
-		// this.onScrollChangedListener = undefined;
 	}
 
-	private showToolbar(parent): void {
-		let navbarHeight = this.isNavbarVisible ? 0 : this.navbarHeight;
-
-		// some devices (Samsung S8) with a hidden virtual navbar show the navbar when the keyboard is open, so subtract its height
-		if (!this.isNavbarVisible) {
-			const isNavbarVisibleWhenKeyboardOpen = this.thePage.getMeasuredHeight() < RichTextEditor.getUsableScreenSizeY() && (RichTextEditor.isVirtualNavbarHidden_butShowsWhenKeyboardIsOpen() || RichTextEditor.hasPermanentMenuKey());
-			if (isNavbarVisibleWhenKeyboardOpen) {
-				// caching for (very minor) performance reasons
-				if (!this.navbarHeightWhenKeyboardOpen) {
-					this.navbarHeightWhenKeyboardOpen = RichTextEditor.getNavbarHeightWhenKeyboardOpen();
-				}
-				navbarHeight = this.navbarHeightWhenKeyboardOpen;
-			}
-		}
-
-		const animateToY = this.startPositionY - this.lastKeyboardHeight - this.lastHeight / Screen.mainScreen.scale - navbarHeight;
-
-		parent
-			.animate({
-				translate: { x: 0, y: animateToY },
-				curve: Enums.AnimationCurve.cubicBezier(0.32, 0.49, 0.56, 1),
-				duration: 370,
-			})
-			.then(() => {});
+	private onInitialFocus(): void {
+		this.toggleParentScrollers(false);
+		this._originalHeight = this.getMeasuredHeight() / Screen.mainScreen.scale;
+		this._originalWidth = this.getMeasuredWidth() / Screen.mainScreen.scale;
+		this.style.zIndex = ZINDEX;
+		this._originalActionBarStateHidden = this._currentPage.actionBarHidden;
+		this._currentPage.actionBarHidden = true;
+		this._initialFocusChange = false;
 	}
 
-	private hideToolbar(parent): void {
-		const animateToY = this.startPositionY + this.navbarHeight;
-		parent
-			.animate({
-				translate: { x: 0, y: animateToY },
-				curve: Enums.AnimationCurve.cubicBezier(0.32, 0.49, 0.56, 1),
-				duration: 370,
-			})
-			.then(() => {});
+	private onInitialBlur(): void {
+		this._currentPage.actionBarHidden = this._originalActionBarStateHidden;
+		this.toggleParentScrollers(true);
+		this._initialFocusChange = false;
 	}
 
 	private applyInitialPosition(): void {
-		if (this.startPositionY !== undefined) {
-			return;
-		}
-
-		const parent = <View>this._toolbar;
-
-		// at this point, topmost().currentPage is null, so do it like this:
-		this.thePage = parent;
-		while (!this.thePage && !this.thePage.frame) {
-			this.thePage = this.thePage.parent;
-		}
-
-		const loc = parent.getLocationOnScreen();
-		if (!loc) {
-			return;
-		}
-		const y = loc.y;
-		const newHeight = parent.getMeasuredHeight();
-
-		// this is the bottom navbar - which may be hidden by the user.. so figure out its actual height
-		this.navbarHeight = RichTextEditor.getNavbarHeight();
-		this.isNavbarVisible = !!this.navbarHeight;
-
-		this.startPositionY = Screen.mainScreen.heightDIPs - y - (this.isNavbarVisible ? this.navbarHeight : 0);
-
-		if (this.lastHeight === undefined) {
-			parent.translateY = this.startPositionY + this.navbarHeight;
-		} else if (this.lastHeight !== newHeight) {
-			parent.translateY = this.startPositionY + this.navbarHeight;
-		}
-		this.lastHeight = newHeight;
-	}
-
-	private static getNavbarHeight() {
-		// detect correct height from: https://shiv19.com/how-to-get-android-navbar-height-nativescript-vanilla/
-		const context = <android.content.Context>ad.getApplicationContext();
-		let navBarHeight = 0;
-		let windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE);
-		let d = windowManager.getDefaultDisplay();
-
-		let realDisplayMetrics = new android.util.DisplayMetrics();
-		d.getRealMetrics(realDisplayMetrics);
-
-		let realHeight = realDisplayMetrics.heightPixels;
-		let realWidth = realDisplayMetrics.widthPixels;
-
-		let displayMetrics = new android.util.DisplayMetrics();
-		d.getMetrics(displayMetrics);
-
-		let displayHeight = displayMetrics.heightPixels;
-		let displayWidth = displayMetrics.widthPixels;
-
-		if (realHeight - displayHeight > 0) {
-			// Portrait
-			navBarHeight = realHeight - displayHeight;
-		} else if (realWidth - displayWidth > 0) {
-			// Landscape
-			navBarHeight = realWidth - displayWidth;
-		}
-
-		// Convert to device independent pixels and return
-		return navBarHeight / context.getResources().getDisplayMetrics().density;
-	}
-
-	private static getNavbarHeightWhenKeyboardOpen() {
-		const resources = (<android.content.Context>ad.getApplicationContext()).getResources();
-		const resourceId = resources.getIdentifier('navigation_bar_height', 'dimen', 'android');
-		if (resourceId > 0) {
-			return resources.getDimensionPixelSize(resourceId) / Screen.mainScreen.scale;
-		}
-		return 0;
-	}
-
-	private static hasPermanentMenuKey() {
-		return android.view.ViewConfiguration.get(<android.content.Context>ad.getApplicationContext()).hasPermanentMenuKey();
-	}
-
-	private static isVirtualNavbarHidden_butShowsWhenKeyboardIsOpen(): boolean {
-		if (RichTextEditor.supportVirtualKeyboardCheck !== undefined) {
-			return RichTextEditor.supportVirtualKeyboardCheck;
-		}
-		const SAMSUNG_NAVIGATION_EVENT = 'navigationbar_hide_bar_enabled';
-		try {
-			// eventId is 1 in case the virtual navbar is hidden (but it shows when the keyboard opens)
-			RichTextEditor.supportVirtualKeyboardCheck = android.provider.Settings.Global.getInt(AndroidApp.foregroundActivity.getContentResolver(), SAMSUNG_NAVIGATION_EVENT) === 1;
-		} catch (e) {
-			// non-Samsung devices throw a 'SettingNotFoundException'
-			console.log('>> e: ' + e);
-			RichTextEditor.supportVirtualKeyboardCheck = false;
-		}
-		return RichTextEditor.supportVirtualKeyboardCheck;
-	}
-
-	private static getUsableScreenSizeY(): number {
-		const screenSize = new android.graphics.Point();
-		AndroidApp.foregroundActivity.getWindowManager().getDefaultDisplay().getSize(screenSize);
-		return screenSize.y;
+		this._toolbar.translateY = this.activityHeight;
 	}
 }
