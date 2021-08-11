@@ -13,5 +13,6 @@ export function onTap(args: EventData) {
 }
 
 export class DemoModel extends DemoSharedRichTextEditor {
-	public editorContent: string = '<img src="https://i.pinimg.com/564x/e5/88/57/e58857be554bfb1b6135c142d35d427d.jpg" style="float: left; width: 100px;" /> <p>Red leicester airedale babybel. Fromage halloumi smelly cheese cheddar fromage frais cream cheese bocconcini hard cheese. Chalk and cheese parmesan fromage cut the cheese halloumi airedale brie cheese and wine. Stinking bishop cheddar.</p>';
+	public editorContent: string =
+		'<p>Red leicester airedale babybel. Fromage halloumi smelly cheese cheddar fromage frais cream cheese bocconcini hard cheese. <a href="https://starwars.fandom.com/wiki/Attack_of_the_Clones_(painting)">Hi, this is a link</a> Chalk and cheese parmesan fromage cut the cheese halloumi airedale brie cheese and wine. Stinking bishop cheddar.</p> <img src="https://pbs.twimg.com/media/E5HaitQUcAMWD1s?format=jpg&name=large" style="max-width: 100%; padding: 5px" /> <p>Red leicester airedale babybel. Fromage halloumi smelly cheese cheddar fromage frais cream cheese bocconcini hard cheese. Chalk and cheese parmesan fromage cut the cheese halloumi airedale brie cheese and wine. Stinking bishop cheddar.</p>';
 }

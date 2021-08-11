@@ -3,12 +3,27 @@
         <ActionBar title="rich-text-editor" icon="" class="action-bar">
         </ActionBar>
     </Page.actionBar>
-    <StackLayout>
-        <Button text="Check HTML" tap="onTap" />
-        <ScrollView class="h-full">
-          <StackLayout>
-            <FS:rich-text-editor width="100%" height="500" html="{{ editorContent }}" />
-          </StackLayout>
-        </ScrollView>
-    </StackLayout>
+
+    <GridLayout backgroundColor="#F5F5F9">
+      <ScrollView>
+        <StackLayout>
+          <Label text="contenteditable" class="h1" />
+          <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
+          <FS:rich-text-editor width="80%" height="200" html="{{ editorContent }}" />
+
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <Label text="Something to make it scroll" class="m-20 p-20"/>
+
+          <Label text="CKEditor4" class="h1" />
+          <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
+          <FS:rich-text-editor width="80%" height="200" html="{{ editorContent }}" template="ckeditor4" />
+        </StackLayout>
+      </ScrollView>
+    </GridLayout>
 </Page>
