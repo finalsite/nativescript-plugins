@@ -1,4 +1,4 @@
-import { Application, Enums, Screen, ScrollView, StackLayout, View } from '@nativescript/core';
+import { Application, Enums, Frame, Screen, ScrollView, StackLayout, View } from '@nativescript/core';
 import { RichTextEditorCommon } from './common';
 
 const ANIMATION_DURATION_IN = 380;

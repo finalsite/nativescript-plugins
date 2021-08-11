@@ -1,0 +1,15 @@
+/**
+ * can use https://fonts.google.com/icons to get character encodings for the different icons
+ */
+.rie_button {
+	android-elevation: 0;
+	font-family: 'Material Icons', 'MaterialIcons-Regular';
+	font-size: 24;
+	vertical-alignment: center;
+	width: 48;
+	padding: 0;
+	margin: 0;
+	background-color: transparent;
+	border-right-width: 1px;
+	border-color: grey;
+}

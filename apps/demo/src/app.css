@@ -1,18 +1,2 @@
 @import '~nativescript-theme-core/css/core.light.css';
-
-/**
- * can use https://fonts.google.com/icons to get character encodings for the different icons
- */
-.icon {
-	font-family: 'Material Icons', 'MaterialIcons-Regular';
-	font-size: 24;
-}
-
-.editor-btn {
-	android-elevation: 0;
-	width: 34;
-	padding: 0;
-	margin: 0;
-	background-color: transparent;
-	border: none;
-}
+@import '../../../packages/rich-text-editor/css/default.css';
