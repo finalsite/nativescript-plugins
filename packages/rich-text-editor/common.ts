@@ -1,5 +1,4 @@
-import { knownFolders, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType } from '@nativescript/core';
-import { getRootView } from '@nativescript/core/application';
+import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType } from '@nativescript/core';
 import { PromptResult } from '@nativescript/core/ui/dialogs/dialogs-common';
 import { LoadFinishedEventData, ShouldOverrideUrlLoadEventData, WebViewEventData, WebViewExt } from '@nota/nativescript-webview-ext';
 
@@ -12,6 +11,8 @@ export const htmlProperty = new Property<RichTextEditorCommon, string>({
 	},
 });
 
+const ANIMATION_DURATION = 370;
+const ANIMATION_CURVE = Enums.AnimationCurve.cubicBezier(0.5, 0, 0.45, 1);
 const AVAILABLE_COLORS = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow', 'navy', 'blue', 'teal', 'aqua'];
 
 const MATERIAL_ICON_MAP = {
@@ -36,6 +37,236 @@ const MATERIAL_ICON_MAP = {
 	indent: String.fromCharCode(0xe23e),
 };
 
+@CSSType('RichTextEditor')
+export abstract class RichTextEditorCommon extends WebViewExt implements AddChildFromBuilder {
+	hasFocus: boolean;
+
+	private _loadedPromise: Promise<LoadFinishedEventData>;
+	private _template: string;
+	private _webViewSrc: string;
+	private _placeholder: ContentView;
+
+	protected _toolbar: RichTextEditorToolbar;
+	protected _currentPage: Page;
+	protected _detachingView = false;
+	protected _lastKeyboardHeight: number;
+
+	protected _rootLayout: GridLayout;
+	protected _originalActionBarStateHidden = false;
+	protected _originalHeight: number;
+	protected _originalWidth: number;
+	protected _originalX: number;
+	protected _originalY: number;
+	protected _originalParent: LayoutBase;
+	protected _originalParentIndex: number;
+
+	constructor() {
+		super();
+
+		this._template = 'contenteditable';
+		this._toolbar = new RichTextEditorToolbar(this);
+		this._placeholder = new ContentView();
+	}
+
+	abstract get viewableHeight(): number;
+
+	get toolbarHeight(): number {
+		return this._toolbar.getMeasuredHeight() / Screen.mainScreen.scale;
+	}
+
+	set template(value: string) {
+		this._template = value;
+	}
+
+	createNativeView() {
+		return super.createNativeView();
+	}
+
+	initNativeView() {
+		super.initNativeView();
+	}
+
+	public onLoaded() {
+		super.onLoaded();
+		if (this.hasFocus) {
+			this.on('done', this.onDone);
+			this.on('keyboardLayoutChanged', this.onKeyboardLayoutChanged);
+		} else {
+			this.on('focus', this.onInitialFocus);
+		}
+		this.on(WebViewExt.shouldOverrideUrlLoadingEvent, this.onOverrideURLLoading); // prevent navigating to other urls on this webview
+		this.on(WebViewExt.loadFinishedEvent, this.onLoadFinished);
+
+		this._ensureLayout();
+	}
+
+	public onUnloaded() {
+		this.off('done', this.onDone);
+		this.off('focus', this.onInitialFocus);
+		this.off('keyboardLayoutChanged', this.onKeyboardLayoutChanged);
+		this.off(WebViewExt.shouldOverrideUrlLoadingEvent, this.onOverrideURLLoading);
+		this.off(WebViewExt.loadFinishedEvent, this.onLoadFinished);
+		this._loadedPromise = null;
+
+		super.onUnloaded();
+	}
+
+	public _addChildFromBuilder(name: string, button: Label) {
+		if (!(button instanceof Label)) return;
+		this._toolbar.addButton(button);
+	}
+
+	public async notifyWebViewChange(value: string) {
+		this.emitToWebView('sourceChanged', value);
+	}
+
+	private onOverrideURLLoading = (args: ShouldOverrideUrlLoadEventData) => {
+		if (!args.url.includes(this._webViewSrc)) {
+			args.cancel = true;
+		}
+	};
+
+	/**
+	 * this is for the initial focus of the editor when it goes full screen
+	 */
+	private onInitialFocus = () => {
+		if (this.hasFocus) return;
+		this.hasFocus = true;
+
+		this._originalHeight = this.getMeasuredHeight() / Screen.mainScreen.scale;
+		this._originalWidth = this.getMeasuredWidth() / Screen.mainScreen.scale;
+		this._originalActionBarStateHidden = this._currentPage.actionBarHidden;
+		this._currentPage.actionBarHidden = true;
+		this.verticalAlignment = 'top';
+
+		const startingPosition = this.getLocationOnScreen();
+		this._originalX = startingPosition.x;
+		this._originalY = startingPosition.y;
+
+		this._swapParent();
+		this.translateX = this._originalX;
+		this.translateY = this._originalY;
+		this.width = this._originalWidth;
+		this.height = this._originalHeight;
+
+		this.focus();
+		this.notify({ eventName: 'keyboardLayoutChanged', object: this });
+	};
+
+	/**
+	 * done button was pressed and we're returning to the original state
+	 */
+	private onDone = async () => {
+		if (!this.hasFocus) return;
+		this.hasFocus = false;
+
+		const htmlContent = await this.executePromise('getHtmlPromise()');
+
+		this._currentPage.actionBarHidden = this._originalActionBarStateHidden;
+
+		this.animate({
+			translate: { x: this._originalX, y: this._originalY },
+			height: this._originalHeight,
+			width: this._originalWidth,
+			curve: ANIMATION_CURVE,
+			duration: ANIMATION_DURATION,
+		}).finally(() => {
+			// ios cancels the animation for some reason sometimes so we need to use 'finally' to make sure these things happen
+			this.translateX = 0;
+			this.translateY = 0;
+			this._swapParent();
+			this.set('html', htmlContent);
+		});
+
+		this._toolbar.animate({
+			translate: { x: 0, y: Screen.mainScreen.heightDIPs + this.toolbarHeight },
+			curve: ANIMATION_CURVE,
+			duration: ANIMATION_DURATION,
+		});
+	};
+
+	/**
+	 * when editor is in focus we adjust the toolbar position and the fullscreen height based on the keyboard height
+	 */
+	private onKeyboardLayoutChanged = () => {
+		if (!this.hasFocus) return;
+
+		this._toolbar.animate({
+			translate: { x: 0, y: this.viewableHeight - this.toolbarHeight },
+			curve: ANIMATION_CURVE,
+			duration: ANIMATION_DURATION,
+		});
+
+		this.animate({
+			translate: { x: 0, y: 0 },
+			height: this.viewableHeight - this.toolbarHeight,
+			width: Screen.mainScreen.widthDIPs,
+			curve: ANIMATION_CURVE,
+			duration: ANIMATION_DURATION,
+		});
+	};
+
+	/**
+	 * making sure required elements are in place
+	 */
+	private _ensureLayout() {
+		/* already done with initial setup so just return */
+		if (this._originalParent) return;
+		this._originalParent = this.parent as LayoutBase;
+
+		let pg;
+		pg = this.parent;
+		while (pg && !(pg instanceof Page)) {
+			pg = pg.parent;
+		}
+		if (!(pg.content instanceof GridLayout)) {
+			console.log(`\n********Warning**********\n A root GridLayout is required in order for the RichTextEditor to work correctly\n\n`);
+		}
+		this._currentPage = pg;
+		this._rootLayout = pg.content;
+		this._rootLayout.addChild(this._toolbar);
+		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/${this._template}.html`);
+
+		// TODO: make this more customizable/extendable
+		if (this._template === 'contenteditable') {
+			this.autoLoadJavaScriptFile('contenteditable', '~/assets/js/contenteditable.js');
+		} else {
+			this.autoLoadJavaScriptFile('ckeditor4', '~/assets/js/ckeditor4.js');
+		}
+
+		this._loadedPromise = this.loadUrl(this._webViewSrc);
+	}
+
+	private onLoadFinished = (event: LoadFinishedEventData) => {
+		this.notifyWebViewChange(this.get('html'));
+	};
+
+	/*
+	 * switch the parent view to be the root view, makes positioning and giving the view focus more reliable
+	 */
+	private _swapParent() {
+		if (this._originalParent === this._rootLayout) return;
+		this._detachingView = true;
+		if (this.parent === this._originalParent) {
+			this._originalParentIndex = this._originalParent.getChildIndex(this);
+			this._originalParent.removeChild(this);
+
+			// stick a placeholder where the webview was so things don't jump around quite as much
+			this._placeholder.height = this._originalHeight;
+			this._placeholder.width = this._originalWidth;
+			this._originalParent.insertChild(this._placeholder, this._originalParentIndex);
+
+			this._rootLayout.addChild(this);
+		} else {
+			this._rootLayout.removeChild(this);
+			this._originalParent.removeChild(this._placeholder);
+			this._originalParent.insertChild(this, this._originalParentIndex);
+		}
+		this._detachingView = false;
+	}
+}
+
+@CSSType('RichTextEditorToolbar')
 class RichTextEditorToolbar extends GridLayout {
 	private _buttonLayout: StackLayout;
 	private _editor: WebViewExt;
@@ -45,26 +276,34 @@ class RichTextEditorToolbar extends GridLayout {
 
 		this._editor = editor;
 
-		this.addColumn(new ItemSpec(1, GridUnitType.STAR));
-		this.addColumn(new ItemSpec(1, GridUnitType.AUTO));
 		// TODO: should be stylable
 		this.backgroundColor = '#F2F2F7';
-		this.height = 44;
 		this.width = PercentLength.parse('100%');
+		this.verticalAlignment = 'top';
+		this.padding = 0;
+		this.margin = 0;
+		this.translateY = Screen.mainScreen.heightDIPs + this.getMeasuredHeight();
+
+		this.addColumn(new ItemSpec(1, GridUnitType.STAR));
+		this.addColumn(new ItemSpec(1, GridUnitType.AUTO));
 
 		const scrollView = new ScrollView();
 		scrollView.orientation = 'horizontal';
 
 		this._buttonLayout = new StackLayout();
+		this._buttonLayout.verticalAlignment = 'top';
 		this._buttonLayout.orientation = 'horizontal';
 
 		scrollView.content = this._buttonLayout;
 
-		const doneButton = new Button();
+		const doneButton = new Label();
 		doneButton.text = 'Done';
-		doneButton.style.padding = '0 10';
+		doneButton.padding = '5 10';
+		doneButton.verticalAlignment = 'middle';
+		doneButton.fontSize = 18;
 
 		doneButton.on('tap', () => {
+			this._editor.notify({ eventName: 'done', object: this });
 			editor.emitToWebView('done', null);
 		});
 
@@ -75,7 +314,7 @@ class RichTextEditorToolbar extends GridLayout {
 	onLoaded() {
 		super.onLoaded();
 
-		// if buttons exist here then a custom button list is being used
+		// if buttons exist here then a custom button list is being used or buttons were already loaded
 		if (this._buttonLayout.getChildrenCount()) return;
 
 		this.addButton(this.createButton('undo', 'undo'));
@@ -100,13 +339,13 @@ class RichTextEditorToolbar extends GridLayout {
 	}
 
 	private createButton(text, command): Button {
-		let newButton = new Button();
+		let newButton = new Label();
 		newButton.text = MATERIAL_ICON_MAP[text] || text;
 		newButton.set('editorCommand', command);
 		return newButton;
 	}
 
-	public addButton(button: Button): void {
+	public addButton(button: Label): void {
 		const editorCommand = button.get('editorCommand');
 
 		button.className = `rie_button rie_button_${editorCommand} ${button.className || ''}`;
@@ -201,108 +440,6 @@ class RichTextEditorToolbar extends GridLayout {
 			this._editor.emitToWebView('backcolor', selectedColor);
 		});
 	};
-}
-
-export abstract class RichTextEditorCommon extends WebViewExt implements AddChildFromBuilder {
-	hasFocus: boolean;
-
-	private _loadedPromise: Promise<LoadFinishedEventData>;
-	private _setEventFromWebView: boolean;
-	private _template: string;
-
-	protected _toolbar: RichTextEditorToolbar;
-	protected _currentPage: Page;
-
-	protected _originalActionBarStateHidden = false;
-	protected _originalHeight: number;
-	protected _originalWidth: number;
-
-	constructor() {
-		super();
-
-		this._template = 'contenteditable';
-		this._setEventFromWebView = false;
-
-		this._toolbar = new RichTextEditorToolbar(this);
-	}
-
-	protected toggleParentScrollers(enable: boolean) {
-		let parentStroller;
-		parentStroller = this.parent;
-		while (parentStroller) {
-			if (parentStroller instanceof ScrollView) {
-				parentStroller.isScrollEnabled = enable;
-			}
-			parentStroller = parentStroller.parent;
-		}
-	}
-
-	public onLoaded() {
-		super.onLoaded();
-
-		/* already setup so just return */
-		if (this._toolbar.parent) return;
-
-		const webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/${this._template}.html`);
-
-		let pg;
-		pg = this.parent;
-		while (pg && !(pg instanceof Page)) {
-			pg = pg.parent;
-		}
-		if (!(pg.content instanceof GridLayout)) {
-			console.log(`\n********Warning**********\n A root GridLayout is required in order for the RichTextEditor to work correctly\n\n`);
-		}
-		this._currentPage = pg;
-
-		pg.content.addChild(this._toolbar);
-
-		// prevent navigating to other urls on this webview
-		this.on(WebViewExt.shouldOverrideUrlLoadingEvent, (args: ShouldOverrideUrlLoadEventData) => {
-			if (!args.url.includes(webViewSrc)) {
-				args.cancel = true;
-			}
-		});
-
-		// listen for change events on the webview and reflect them on the html property
-		this.on('input', (event: WebViewEventData) => {
-			// TODO: there's probably a better way of doing this
-			// we set this so we don't turn around and notify the change right back to the web view
-			this._setEventFromWebView = true;
-			this.set('html', event.data);
-		});
-
-		// TODO: make this more customizable/extendable
-		if (this._template === 'contenteditable') {
-			this.autoLoadJavaScriptFile('contenteditable', '~/assets/js/contenteditable.js');
-		} else {
-			this.autoLoadJavaScriptFile('ckeditor4', '~/assets/js/ckeditor4.js');
-		}
-
-		this._loadedPromise = this.loadUrl(webViewSrc).then((event: LoadFinishedEventData) => {
-			this.emitToWebView('sourceChanged', this.get('html'));
-			return event;
-		});
-	}
-
-	_addChildFromBuilder(name: string, button: Button) {
-		if (!(button instanceof Button)) return;
-		this._toolbar.addButton(button);
-	}
-
-	set template(value: string) {
-		this._template = value;
-	}
-
-	public async notifyWebViewChange(value: string) {
-		if (this._setEventFromWebView) {
-			return;
-		}
-
-		await this._loadedPromise;
-		this.emitToWebView('sourceChanged', value);
-		this._setEventFromWebView = false;
-	}
 }
 
 htmlProperty.register(RichTextEditorCommon);

@@ -6,8 +6,8 @@
 	font-family: 'Material Icons', 'MaterialIcons-Regular';
 	font-size: 24;
 	vertical-alignment: center;
-	width: 48;
-	padding: 0;
+	horizontal-alignment: center;
+	padding: 5 10;
 	margin: 0;
 	background-color: transparent;
 	border-right-width: 1px;

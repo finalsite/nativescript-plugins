@@ -1,4 +1,4 @@
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" xmlns:FS="@finalsite/rich-text-editor" navigatingTo="navigatingTo" class="page">
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" xmlns:RIE="@finalsite/rich-text-editor" navigatingTo="navigatingTo" class="page">
     <Page.actionBar>
         <ActionBar title="rich-text-editor" icon="" class="action-bar">
         </ActionBar>
@@ -9,7 +9,7 @@
         <StackLayout>
           <Label text="default contenteditable" class="h1" />
           <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
-          <FS:rich-text-editor width="90%" height="200" html="{{ editorContent }}"/>
+          <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}"/>
 
           <Label text="Something to make it scroll" class="m-20 p-20"/>
           <Label text="Something to make it scroll" class="m-20 p-20"/>
@@ -17,13 +17,13 @@
 
           <Label text="contenteditable with custom buttons" class="h1" />
           <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
-          <FS:rich-text-editor width="90%" height="200" html="{{ editorContent }}">
+          <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}">
             <Button text="&#xe965;" editorCommand="undo" class="custom_button" />
             <Button text="&#xe966;" editorCommand="redo" class="custom_button" />
             <Button text="&#xea62;" editorCommand="bold" class="custom_button" />
             <Button text="&#xea63;" editorCommand="underline" class="custom_button" />
             <Button text="&#xea64;" editorCommand="italic" class="custom_button" />
-          </FS:rich-text-editor>
+          </RIE:rich-text-editor>
 
           <Label text="Something to make it scroll" class="m-20 p-20"/>
           <Label text="Something to make it scroll" class="m-20 p-20"/>
@@ -33,7 +33,7 @@
 
           <Label text="CKEditor4" class="h1" />
           <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
-          <FS:rich-text-editor width="90%" height="200" html="{{ editorContent }}" template="ckeditor4" />
+          <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}" template="ckeditor4" />
         </StackLayout>
       </ScrollView>
     </GridLayout>
