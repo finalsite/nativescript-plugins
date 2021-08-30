@@ -1,14 +1,33 @@
 // bridge interface for a regular content editable div
-const nsWebViewBridge = window.nsWebViewBridge;
+let nsWebViewBridge;
+const waitCKEDITOR = setInterval(function () {
+	if (!window.CKEDITOR) return;
+	clearInterval(waitCKEDITOR);
 
-if (nsWebViewBridge) {
-	initBridge();
-} else {
-	window.addEventListener('ns-bridge-ready', function (e) {
-		const nsWebViewBridge = e.detail;
+	nsWebViewBridge = window.nsWebViewBridge;
+	if (nsWebViewBridge) {
 		initBridge();
-	});
-}
+	} else {
+		window.addEventListener('ns-bridge-ready', function (e) {
+			nsWebViewBridge = e.detail;
+			initBridge();
+		});
+	}
+}, 10);
+
+const insertHeadScript = function (src) {
+	var externalScript = document.createElement('script');
+	externalScript.setAttribute('src', src);
+	document.head.appendChild(externalScript);
+};
+
+const insertHeadCSS = function (src) {
+	var externalCSS = document.createElement('link');
+	externalCSS.setAttribute('rel', 'stylesheet');
+	externalCSS.setAttribute('type', 'text/css');
+	externalCSS.setAttribute('href', src);
+	document.head.appendChild(externalCSS);
+};
 
 let currentSavedSelection;
 const saveSelectionPromise = function () {
@@ -26,8 +45,10 @@ const getHtmlPromise = function () {
 };
 
 function initBridge() {
+	// android can end up reloading the html a lot and end up in a weird state somehow :/
+	if (CKEDITOR.instances.editor) CKEDITOR.instances.editor.destroy();
+
 	const editorDiv = document.getElementById('editor');
-	editorDiv.setAttribute('contenteditable', true);
 
 	// disable UI things that we're replacing with native buttons
 	const editorInstance = CKEDITOR.inline('editor', {
@@ -35,31 +56,6 @@ function initBridge() {
 		removePlugins: 'liststyle,tableselection,tabletools,tableresize,contextmenu,toolbar',
 		allowedContent: true,
 		toolbar: [],
-	});
-
-	editorInstance.on('instanceReady', () => {
-		editorInstance.on(
-			'doubleclick',
-			function (evt) {
-				// TODO: emit this to the native side maybe?
-				return false;
-			},
-			null,
-			null,
-			1
-		); // last param gives this priority
-
-		editorInstance.on('focus', function (event) {
-			nsWebViewBridge.emit('focus');
-		});
-
-		editorInstance.on('blur', function (event) {
-			nsWebViewBridge.emit('blur');
-		});
-
-		editorInstance.on('change', function (event) {
-			nsWebViewBridge.emit('input', editorInstance.getData());
-		});
 	});
 
 	nsWebViewBridge.on('sourceChanged', function (data) {
@@ -138,5 +134,32 @@ function initBridge() {
 			if (!value) return;
 			editorInstance.applyStyle(CKE_COMMAND_STYLE_MAP[event](value));
 		});
+	});
+
+	editorInstance.on('instanceReady', () => {
+		editorInstance.on(
+			'doubleclick',
+			function (evt) {
+				// TODO: emit this to the native side maybe?
+				return false;
+			},
+			null,
+			null,
+			1
+		); // last param gives this priority
+
+		editorInstance.on('focus', function (event) {
+			nsWebViewBridge.emit('focus');
+		});
+
+		editorInstance.on('blur', function (event) {
+			nsWebViewBridge.emit('blur');
+		});
+
+		editorInstance.on('change', function (event) {
+			nsWebViewBridge.emit('input', editorInstance.getData());
+		});
+
+		nsWebViewBridge.emit('ready');
 	});
 }

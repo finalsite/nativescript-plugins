@@ -1,3 +1,4 @@
 import { RichTextEditorCommon } from './common';
+export * from './common';
 
-export declare class RichTextEditor extends RichTextEditorCommon {}
+export class RichTextEditor extends RichTextEditorCommon {}

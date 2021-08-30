@@ -11,6 +11,20 @@ if (nsWebViewBridge) {
 	});
 }
 
+const insertHeadScript = function (src) {
+	var externalScript = document.createElement('script');
+	externalScript.setAttribute('src', src);
+	document.head.appendChild(externalScript);
+};
+
+const insertHeadCSS = function (src) {
+	var externalCSS = document.createElement('link');
+	externalCSS.setAttribute('rel', 'stylesheet');
+	externalCSS.setAttribute('type', 'text/css');
+	externalCSS.setAttribute('href', src);
+	document.head.appendChild(externalCSS);
+};
+
 let currentSavedSelection;
 const saveSelectionPromise = function () {
 	const editorInstance = document.getElementById('editor');
@@ -95,10 +109,6 @@ function initBridge() {
 		false
 	);
 
-	setInterval(() => {
-		nsWebViewBridge.emit('pulse check');
-	}, 5000);
-
 	nsWebViewBridge.on('sourceChanged', function (data) {
 		editorInstance.innerHTML = data;
 	});
@@ -143,4 +153,6 @@ function initBridge() {
 			document.execCommand(event, false, value);
 		});
 	});
+
+	nsWebViewBridge.emit('ready');
 }

@@ -3,6 +3,8 @@ import { android as AndroidApp } from '@nativescript/core/application';
 import { ad } from '@nativescript/core/utils';
 import { RichTextEditorCommon } from './common';
 
+export * from './common';
+
 export class RichTextEditor extends RichTextEditorCommon {
 	private onGlobalLayoutListener: android.view.ViewTreeObserver.OnGlobalLayoutListener;
 	private static supportVirtualKeyboardCheck;

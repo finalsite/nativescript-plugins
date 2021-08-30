@@ -1,4 +1,4 @@
-import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType } from '@nativescript/core';
+import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType, path } from '@nativescript/core';
 import { PromptResult } from '@nativescript/core/ui/dialogs/dialogs-common';
 import { LoadFinishedEventData, ShouldOverrideUrlLoadEventData, WebViewEventData, WebViewExt } from '@nota/nativescript-webview-ext';
 
@@ -37,12 +37,20 @@ const MATERIAL_ICON_MAP = {
 	indent: String.fromCharCode(0xe23e),
 };
 
+export module RichTextEditorConfig {
+	export let defaultBridge: string = '~/assets/js/contenteditable.js';
+	export let defaultHeadJS: string;
+	export let defaultHeadCSS: string;
+}
+
 @CSSType('RichTextEditor')
 export abstract class RichTextEditorCommon extends WebViewExt implements AddChildFromBuilder {
 	hasFocus: boolean;
 
 	private _loadedPromise: Promise<LoadFinishedEventData>;
-	private _template: string;
+	private _bridge: string;
+	private _headJS: string;
+	private _headCSS: string;
 	private _webViewSrc: string;
 	private _placeholder: ContentView;
 
@@ -63,7 +71,9 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 	constructor() {
 		super();
 
-		this._template = 'contenteditable';
+		this._bridge = RichTextEditorConfig.defaultBridge;
+		this._headJS = RichTextEditorConfig.defaultHeadJS;
+		this._headCSS = RichTextEditorConfig.defaultHeadCSS;
 		this._toolbar = new RichTextEditorToolbar(this);
 		this._placeholder = new ContentView();
 	}
@@ -74,8 +84,8 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		return this._toolbar.getMeasuredHeight() / Screen.mainScreen.scale;
 	}
 
-	set template(value: string) {
-		this._template = value;
+	set bridge(value: string) {
+		this._bridge = value;
 	}
 
 	createNativeView() {
@@ -95,7 +105,7 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 			this.on('focus', this.onInitialFocus);
 		}
 		this.on(WebViewExt.shouldOverrideUrlLoadingEvent, this.onOverrideURLLoading); // prevent navigating to other urls on this webview
-		this.on(WebViewExt.loadFinishedEvent, this.onLoadFinished);
+		this.on('ready', this.onReady);
 
 		this._ensureLayout();
 	}
@@ -105,7 +115,7 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this.off('focus', this.onInitialFocus);
 		this.off('keyboardLayoutChanged', this.onKeyboardLayoutChanged);
 		this.off(WebViewExt.shouldOverrideUrlLoadingEvent, this.onOverrideURLLoading);
-		this.off(WebViewExt.loadFinishedEvent, this.onLoadFinished);
+		this.off('ready', this.onReady);
 		this._loadedPromise = null;
 
 		super.onUnloaded();
@@ -225,19 +235,29 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this._currentPage = pg;
 		this._rootLayout = pg.content;
 		this._rootLayout.addChild(this._toolbar);
-		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/${this._template}.html`);
+		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/default.html`);
 
-		// TODO: make this more customizable/extendable
-		if (this._template === 'contenteditable') {
-			this.autoLoadJavaScriptFile('contenteditable', '~/assets/js/contenteditable.js');
-		} else {
-			this.autoLoadJavaScriptFile('ckeditor4', '~/assets/js/ckeditor4.js');
-		}
+		this.addHeadAssets();
+		this.autoLoadJavaScriptFile('editorBridgeFile', this._bridge);
 
 		this._loadedPromise = this.loadUrl(this._webViewSrc);
 	}
 
-	private onLoadFinished = (event: LoadFinishedEventData) => {
+	private addHeadAssets() {
+		if (this._headJS) {
+			this._headJS.split(/\s*,\s*/).forEach((url) => {
+				this.autoExecuteJavaScript(`insertHeadScript('${url}')`, url);
+			});
+		}
+
+		if (this._headCSS) {
+			this._headCSS.split(/\s*,\s*/).forEach((url) => {
+				this.autoExecuteJavaScript(`insertHeadCSS('${url}')`, url);
+			});
+		}
+	}
+
+	private onReady = () => {
 		this.notifyWebViewChange(this.get('html'));
 	};
 

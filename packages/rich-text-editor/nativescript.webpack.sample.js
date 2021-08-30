@@ -1,6 +1,6 @@
 module.exports = (webpack) => {
 	webpack.Utils.addCopyRule({
-		from: '@finalsite/rich-text-editor/assets/html/ckeditor4.html',
+		from: '@finalsite/rich-text-editor/assets/html/default.html',
 		to: 'assets/html',
 		context: webpack.Utils.project.getProjectFilePath('node_modules'),
 	});

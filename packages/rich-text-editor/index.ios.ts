@@ -1,6 +1,8 @@
 import { Application, Screen } from '@nativescript/core';
 import { RichTextEditorCommon } from './common';
 
+export * from './common';
+
 declare const WKWebView: any;
 
 /* need to subclass WKWebView so that we can remove the keyboard accessory view that we don't want */
