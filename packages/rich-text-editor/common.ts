@@ -1,6 +1,8 @@
-import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType, path } from '@nativescript/core';
+import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType, path, ViewBase } from '@nativescript/core';
 import { PromptResult } from '@nativescript/core/ui/dialogs/dialogs-common';
 import { LoadFinishedEventData, ShouldOverrideUrlLoadEventData, WebViewEventData, WebViewExt } from '@nota/nativescript-webview-ext';
+
+import { RichTextEditor } from '.';
 
 export const htmlProperty = new Property<RichTextEditorCommon, string>({
 	name: 'html',
@@ -15,7 +17,11 @@ const ANIMATION_DURATION = 370;
 const ANIMATION_CURVE = Enums.AnimationCurve.cubicBezier(0.5, 0, 0.45, 1);
 const AVAILABLE_COLORS = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow', 'navy', 'blue', 'teal', 'aqua'];
 
-const MATERIAL_ICON_MAP = {
+interface IconMap {
+	[key: string]: string;
+}
+
+const MATERIAL_ICON_MAP: IconMap = {
 	undo: String.fromCharCode(0xe166),
 	redo: String.fromCharCode(0xe15a),
 	clear: String.fromCharCode(0xe239),
@@ -224,16 +230,17 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		if (this._originalParent) return;
 		this._originalParent = this.parent as LayoutBase;
 
-		let pg;
-		pg = this.parent;
-		while (pg && !(pg instanceof Page)) {
-			pg = pg.parent;
+		let finder: ViewBase = this.parent;
+		while (finder && !(finder instanceof Page)) {
+			finder = finder.parent;
 		}
+
+		let pg: Page = finder as Page;
 		if (!(pg.content instanceof GridLayout)) {
 			console.log(`\n********Warning**********\n A root GridLayout is required in order for the RichTextEditor to work correctly\n\n`);
 		}
 		this._currentPage = pg;
-		this._rootLayout = pg.content;
+		this._rootLayout = pg.content as GridLayout;
 		this._rootLayout.addChild(this._toolbar);
 		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/default.html`);
 
@@ -288,10 +295,12 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 
 @CSSType('RichTextEditorToolbar')
 class RichTextEditorToolbar extends GridLayout {
+	[key: string]: any;
+
 	private _buttonLayout: StackLayout;
 	private _editor: WebViewExt;
 
-	constructor(editor) {
+	constructor(editor: RichTextEditorCommon) {
 		super();
 
 		this._editor = editor;
@@ -358,7 +367,7 @@ class RichTextEditorToolbar extends GridLayout {
 		this.addButton(this.createButton('indent', 'indent'));
 	}
 
-	private createButton(text, command): Button {
+	private createButton(text: string, command: string): Button {
 		let newButton = new Label();
 		newButton.text = MATERIAL_ICON_MAP[text] || text;
 		newButton.set('editorCommand', command);
