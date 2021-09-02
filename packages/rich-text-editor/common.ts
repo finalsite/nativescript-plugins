@@ -49,6 +49,11 @@ export module RichTextEditorConfig {
 	export let defaultHeadCSS: string;
 }
 
+let activeRichTextEditor: RichTextEditor;
+export function getActiveRichTextEditor(): RichTextEditor {
+	return activeRichTextEditor;
+}
+
 @CSSType('RichTextEditor')
 export abstract class RichTextEditorCommon extends WebViewExt implements AddChildFromBuilder {
 	hasFocus: boolean;
@@ -136,6 +141,14 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this.emitToWebView('sourceChanged', value);
 	}
 
+	public saveSelection(): Promise<void> {
+		return this.executePromise('saveSelectionPromise()');
+	}
+
+	public restoreSelection(): Promise<void> {
+		return this.executePromise('restoreSelectionPromise()');
+	}
+
 	private onOverrideURLLoading = (args: ShouldOverrideUrlLoadEventData) => {
 		if (!args.url.includes(this._webViewSrc)) {
 			args.cancel = true;
@@ -148,6 +161,7 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 	private onInitialFocus = () => {
 		if (this.hasFocus) return;
 		this.hasFocus = true;
+		activeRichTextEditor = this;
 
 		this._originalHeight = this.getMeasuredHeight() / Screen.mainScreen.scale;
 		this._originalWidth = this.getMeasuredWidth() / Screen.mainScreen.scale;
@@ -298,7 +312,7 @@ class RichTextEditorToolbar extends GridLayout {
 	[key: string]: any;
 
 	private _buttonLayout: StackLayout;
-	private _editor: WebViewExt;
+	private _editor: RichTextEditorCommon;
 
 	constructor(editor: RichTextEditorCommon) {
 		super();
@@ -398,7 +412,7 @@ class RichTextEditorToolbar extends GridLayout {
 	 */
 	private link = async () => {
 		// we lose selection/focus when we do the prompt so we need to save it and restore it later
-		await this._editor.executePromise('saveSelectionPromise()');
+		await this._editor.saveSelection();
 
 		prompt({
 			title: 'URL',
@@ -408,7 +422,7 @@ class RichTextEditorToolbar extends GridLayout {
 			cancelable: true,
 			inputType: inputType.email,
 		}).then(async (result: PromptResult) => {
-			await this._editor.executePromise('restoreSelectionPromise()');
+			await this._editor.restoreSelection();
 			if (result.result) {
 				this._editor.emitToWebView('createLink', result.text);
 			}
