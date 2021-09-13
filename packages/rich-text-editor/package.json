@@ -1,6 +1,6 @@
 {
 	"name": "@finalsite/rich-text-editor",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"description": "WYSIWYG editing in nativescript",
 	"main": "index",
 	"typings": "index.d.ts",

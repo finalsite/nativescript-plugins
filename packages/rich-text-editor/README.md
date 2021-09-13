@@ -6,8 +6,28 @@ ns plugin add @finalsite/rich-text-editor
 
 ## Installation
 
-// TODO for NS8 we can probably recommend some webpack config lines to do this and keep them in sync?
 Copy the assets folder to your project. You can choose to only copy the contenteditable or ckeditor4 files if your only going to use one or the other. Avoid updating these files in case of future updates. (The js file is the code that bridges the button commands to the chosen editor and the html file sets up the editor in the webview.)
+
+### For NS8
+
+Add the following to your `webpack.config.js`
+
+```
+  webpack.Utils.addCopyRule({
+    from: '@finalsite/rich-text-editor/assets/html/default.html',
+    to: 'assets/html',
+    context: webpack.Utils.project.getProjectFilePath('node_modules'),
+  });
+
+  webpack.Utils.addCopyRule({
+    from: '@finalsite/rich-text-editor/assets/js/contenteditable.js',
+    to: 'assets/js',
+    context: webpack.Utils.project.getProjectFilePath('node_modules'),
+  });
+```
+
+### For NS7
+
 e.g
 
 ```
@@ -15,7 +35,7 @@ cp node_modules/@finalsite/rich-text-editor/assets/html/contenteditable.html app
 cp node_modules/@finalsite/rich-text-editor/assets/js/contenteditable.js app/assets/js/
 ```
 
-If using the default icon set you'll need to copy the font file
+### Using the default icon set
 
 ```
 cp node_modules/@finalsite/rich-text-editor/fonts/MaterialIcons-Regular.ttf app/fonts/
@@ -37,7 +57,7 @@ And include the css file
 
 _Important_ In order for the toolbar to display correctly you must use a GridLayout or RootLayout as your root layout
 
-// TODO
+See demo for usage
 
 ## Usage (Angular)
 
