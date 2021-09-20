@@ -1,5 +1,7 @@
 # @finalsite/rich-text-editor
 
+![Demo](https://cdn-std.droplr.net/files/acc_703718/GBLTsM)
+
 ```javascript
 ns plugin add @finalsite/rich-text-editor
 ```
