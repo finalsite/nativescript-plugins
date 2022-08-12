@@ -11,7 +11,7 @@
           <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
           <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}"/>
 
-          <Label text="Something to make it scroll" class="m-20 p-20"/>
+          <!-- <Label text="Something to make it scroll" class="m-20 p-20"/>
           <Label text="Something to make it scroll" class="m-20 p-20"/>
           <Label text="Something to make it scroll" class="m-20 p-20"/>
 
@@ -33,7 +33,7 @@
 
           <Label text="CKEditor4" class="h1" />
           <Button text="Check HTML" tap="onTap" class="btn btn-primary" />
-          <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}" bridge="~/assets/js/ckeditor4.js" headAssets="https://cdn.ckeditor.com/4.16.1/standard-all/ckeditor.js" />
+          <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}" bridge="~/assets/js/ckeditor4.js" headAssets="https://cdn.ckeditor.com/4.16.1/standard-all/ckeditor.js" /> -->
         </StackLayout>
       </ScrollView>
     </GridLayout>

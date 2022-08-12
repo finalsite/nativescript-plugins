@@ -108,6 +108,8 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 	}
 
 	public onLoaded() {
+		console.log('[common.ts] LOADED');
+
 		super.onLoaded();
 		if (this.hasFocus) {
 			this.on('done', this.onDone);
@@ -159,6 +161,8 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 	 * this is for the initial focus of the editor when it goes full screen
 	 */
 	private onInitialFocus = () => {
+		console.log('[common.ts] Focused...');
+
 		if (this.hasFocus) return;
 		this.hasFocus = true;
 		activeRichTextEditor = this;
@@ -259,6 +263,14 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/default.html`);
 
 		this.addHeadAssets();
+
+		this.executeJavaScript('alert("hello")')
+			.then(() => console.log('[common.ts] executed js code'))
+			.catch((e) => console.log('common.ts] failed to execute js: ', e));
+		this.loadJavaScriptFile('editorBridgeFile-dev', this._bridge)
+			.then(() => console.log('[common.ts] loaded JS file'))
+			.catch((e) => console.log('[common.ts] failed to load js file: ', e));
+
 		this.autoLoadJavaScriptFile('editorBridgeFile', this._bridge);
 
 		this._loadedPromise = this.loadUrl(this._webViewSrc);
