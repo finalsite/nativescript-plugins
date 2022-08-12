@@ -264,7 +264,7 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 
 		this.addHeadAssets();
 
-		this.executeJavaScript('alert("hello")')
+		this.executeJavaScript('alert("Executing JS from common.ts")')
 			.then(() => console.log('[common.ts] executed js code'))
 			.catch((e) => console.log('common.ts] failed to execute js: ', e));
 		this.loadJavaScriptFile('editorBridgeFile-dev', this._bridge)
