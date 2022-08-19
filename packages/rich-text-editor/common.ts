@@ -245,21 +245,26 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this._originalParent = this.parent as LayoutBase;
 
 		let finder: ViewBase = this.parent;
+		let pg: Page = finder as Page;
+
+		console.log("[common.ts] here: ", finder)
+
 		while (finder && !(finder instanceof Page)) {
 			finder = finder.parent;
 		}
 
-		let pg: Page = finder as Page;
+		console.log("[common.ts] here: ", finder)
+
 		if (!(pg.content instanceof GridLayout)) {
 			console.log(`\n********Warning**********\n A root GridLayout is required in order for the RichTextEditor to work correctly\n\n`);
 		}
-		this._currentPage = pg;
-		this._rootLayout = pg.content as GridLayout;
-		this._rootLayout.addChild(this._toolbar);
+		// this._currentPage = pg;
+		// this._rootLayout = pg.content as GridLayout;
+		// this._rootLayout.addChild(this._toolbar);
 		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/default.html`);
 
-		this.addHeadAssets();
-		this.autoLoadJavaScriptFile('editorBridgeFile', this._bridge);
+		// this.addHeadAssets();
+		// this.autoLoadJavaScriptFile('editorBridgeFile', this._bridge);
 
 		this._loadedPromise = this.loadUrl(this._webViewSrc);
 	}
