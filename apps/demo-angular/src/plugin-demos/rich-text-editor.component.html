@@ -1,8 +1,9 @@
 <ActionBar title="rich-text-editor" class="action-bar"> </ActionBar>
-<StackLayout class="p-20">
+<GridLayout class="p-20">
 	<ScrollView class="h-full">
 		<StackLayout>
 			<Button text="Test rich-text-editor" (tap)="demoShared.testIt()" class="btn btn-primary"></Button>
+			<RichTextEditor width="90%" height="200" html="" />
 		</StackLayout>
 	</ScrollView>
 </StackLayout>
