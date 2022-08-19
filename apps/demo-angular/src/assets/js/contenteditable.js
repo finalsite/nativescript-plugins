@@ -1,5 +1,7 @@
 // bridge interface for a regular content editable div
 
+alert("Hello from contenteditable")
+
 const nsWebViewBridge = window.nsWebViewBridge;
 
 if (nsWebViewBridge) {
