@@ -15,7 +15,7 @@
 		"url": "https://github.com/NativeScript/plugins.git"
 	},
 	"dependencies": {
-		"@nota/nativescript-webview-ext": "8.0.2"
+		"@nota/nativescript-webview-ext": "^8.0.2"
 	},
 	"keywords": [
 		"NativeScript",

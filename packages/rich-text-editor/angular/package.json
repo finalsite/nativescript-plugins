@@ -1,0 +1,16 @@
+{
+	"name": "@finalsite/rich-text-editor/angular",
+	"ngPackage": {
+		"lib": {
+			"entryFile": "index.ts",
+			"umdModuleIds": {
+				"@nativescript/core": "ns-core",
+				"@nativescript/angular": "ns-angular",
+				"@finalsite/rich-text-editor": "ns-rich-text-editor"
+			}
+		},
+		"whitelistedNonPeerDependencies": [
+			"."
+		]
+	}
+}
