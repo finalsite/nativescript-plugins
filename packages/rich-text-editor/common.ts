@@ -270,8 +270,6 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this._rootLayout.addChild(this._toolbar);
 		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/default.html`);
 
-		this.executeJavaScript("alert('hello from js')").catch((e) => console.log(e));
-
 		this.addHeadAssets();
 		this.autoLoadJavaScriptFile('editorBridgeFile', this._bridge);
 
