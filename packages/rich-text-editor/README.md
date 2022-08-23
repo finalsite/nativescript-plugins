@@ -65,6 +65,18 @@ See demo for usage
 ## Usage (Angular)
 
 ### Setup
+In your component's `app.module.ts`, import `@finalsite/rich-text-editor/angular:`
+```
+import { NgModule, NO_ERRORS_SCHEMA } from  '@angular/core';
+import { NativeScriptModule } from  '@nativescript/angular';
+
+import "@finalsite/rich-text-editor/angular" // <---- Add here
+
+...
+
+export  class  AppModule {}
+```
+
 In your component's module file, import and include the NativeScriptRichTextEditorModule:
 
 ```
@@ -89,6 +101,8 @@ Then, include the text editor & editor's html in your component's html file:
 ```
 <RichTextEditor  width="90%"  height="200"  [html]="editorContent"></RichTextEditor>
 ```
+
+_View the demo-angular folder to see an angular demo_
 
 ## Dependencies/Credit
 
