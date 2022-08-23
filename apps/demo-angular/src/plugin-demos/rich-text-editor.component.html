@@ -1,5 +1,7 @@
 <ActionBar title="rich-text-editor" class="action-bar"> </ActionBar>
-<GridLayout style="background-color: rgb(236, 237, 254);">
-			<!-- <WebViewExt src="https://google.com"></WebViewExt> -->
-			<RichTextEditor width="90%" height="200" [html]="editorContent"></RichTextEditor>
+<GridLayout style="background-color: rgb(236, 237, 254); height: 100%; width: 100%; ">
+	<StackLayout>
+		<Button text="Check HTML" (tap)="onViewSource()" class="btn btn-primary"></Button>
+		<RichTextEditor width="90%" height="200" [html]="editorContent"></RichTextEditor>
+	</StackLayout>
 </GridLayout>
