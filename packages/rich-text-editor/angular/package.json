@@ -6,11 +6,13 @@
 			"umdModuleIds": {
 				"@nativescript/core": "ns-core",
 				"@nativescript/angular": "ns-angular",
-				"@finalsite/rich-text-editor": "ns-rich-text-editor"
+				"@finalsite/rich-text-editor": "ns-rich-text-editor",
+				"@nota/nativescript-webview-ext": "ns-nota-webview-ext"
 			}
 		},
 		"whitelistedNonPeerDependencies": [
-			"."
+			"@nota/nativescript-webview-ext",
+			"@nota/nativescript-webview-ext/angular"
 		]
 	}
 }
