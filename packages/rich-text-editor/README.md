@@ -1,3 +1,4 @@
+
 # @finalsite/rich-text-editor
 
 ![Demo](https://cdn-std.droplr.net/files/acc_703718/GBLTsM)
@@ -63,7 +64,31 @@ See demo for usage
 
 ## Usage (Angular)
 
-// TODO
+### Setup
+In your component's module file, import and include the NativeScriptRichTextEditorModule:
+
+```
+import { NativeScriptRichTextEditorModule } from  '@finalsite/rich-text-editor/angular'
+
+...
+
+@NgModule({
+	imports: [NativeScriptRichTextEditorModule, ...otherModules],
+	declarations: [YourComponents],
+	schemas: [YourSchemas],
+})
+```
+
+In your component's component file, initialize your editor's html:
+```
+editorContent: string = '<p><img alt="leonardo" height="249" src="https://upload.wikimedia.org/wikipedia/en/e/ed/Leonardo_%28Teenage_Mutant_Ninja_Turtles%29.jpg" style="float:right; margin: 1em" width="150" /></p><h1><strong>Leonardo</strong></h1>;
+```
+
+_Ensure that there your app is wrapped in a GridLayout. See demo-angular for an example_
+Then, include the text editor & editor's html in your component's html file:
+```
+<RichTextEditor  width="90%"  height="200"  [html]="editorContent"></RichTextEditor>
+```
 
 ## Dependencies/Credit
 
