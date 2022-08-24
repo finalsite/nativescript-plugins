@@ -1,0 +1,18 @@
+{
+  "name": "demo-vue",
+  "main": "app/app.js",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@finalsite/rich-text-editor": "file:../../dist/packages/rich-text-editor",
+    "@nativescript/core": "~8.3.0",
+    "@nativescript/theme": "~3.0.2",
+    "@nota/nativescript-webview-ext": "^8.0.2",
+    "nativescript-vue": "~2.9.0"
+  },
+  "devDependencies": {
+    "@nativescript/ios": "8.3.3",
+    "@nativescript/webpack": "~5.0.6",
+    "nativescript-vue-template-compiler": "~2.9.0"
+  }
+}
