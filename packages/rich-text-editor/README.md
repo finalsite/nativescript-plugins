@@ -60,20 +60,35 @@ And include the css file
 
 _Important_ In order for the toolbar to display correctly you must use a GridLayout or RootLayout as your root layout
 
+
+In your component's component file, initialize your editor's html:
+```
+editorContent: string = '<p><img alt="leonardo" height="249" src="https://upload.wikimedia.org/wikipedia/en/e/ed/Leonardo_%28Teenage_Mutant_Ninja_Turtles%29.jpg" style="float:right; margin: 1em" width="150" /></p><h1><strong>Leonardo</strong></h1>;
+```
+
+_Ensure that there your app is wrapped in a GridLayout. See demo for an example_
+Then, include the text editor & editor's html in your component's html file:
+```
+<RichTextEditor  width="90%"  height="200"  html="{{ editorContent }}"></RichTextEditor>
+```
+
 See demo for usage
 
 ## Usage (Angular)
 
 ### Setup
-In your component's `app.module.ts`, import `@finalsite/rich-text-editor/angular:`
+run `npm install @nota/nativescript-webview-ext@8.0.2`
+In your component's `app.module.ts`, import & setup `@nota/nativescript-webview-ext/angular`
 ```
 import { NgModule, NO_ERRORS_SCHEMA } from  '@angular/core';
 import { NativeScriptModule } from  '@nativescript/angular';
 
-import "@finalsite/rich-text-editor/angular" // <---- Add here
-
+import {WebViewExtModule} from  "@nota/nativescript-webview-ext/angular" <-- Add here
 ...
 
+@NgModule({
+	imports: [...YourImports, WebViewExtModule] <-- Add here
+})
 export  class  AppModule {}
 ```
 
@@ -91,18 +106,17 @@ import { NativeScriptRichTextEditorModule } from  '@finalsite/rich-text-editor/a
 })
 ```
 
-In your component's component file, initialize your editor's html:
-```
-editorContent: string = '<p><img alt="leonardo" height="249" src="https://upload.wikimedia.org/wikipedia/en/e/ed/Leonardo_%28Teenage_Mutant_Ninja_Turtles%29.jpg" style="float:right; margin: 1em" width="150" /></p><h1><strong>Leonardo</strong></h1>;
-```
-
-_Ensure that there your app is wrapped in a GridLayout. See demo-angular for an example_
-Then, include the text editor & editor's html in your component's html file:
-```
-<RichTextEditor  width="90%"  height="200"  [html]="editorContent"></RichTextEditor>
-```
 
 _View the demo-angular folder to see an angular demo_
+
+## Usage (Vue)
+
+In your apps `app.js` (entry file), include the following two lines:
+
+    import  RichTextEditor  from  "@finalsite/rich-text-editor/vue"
+    RichTextEditor.install(Vue)
+
+_View the demo-vue folder to see a vue demo_
 
 ## Dependencies/Credit
 
