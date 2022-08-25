@@ -99,7 +99,8 @@ See demo for usage
 
 ### Setup
 
-run `npm install @nota/nativescript-webview-ext@8.0.2`
+Run `npm install @nota/nativescript-webview-ext@8.0.2`.
+<br />
 In your component's `app.module.ts`, import & setup `@nota/nativescript-webview-ext/angular`
 
 ```
