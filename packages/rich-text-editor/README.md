@@ -66,12 +66,13 @@ editorContent: string = '<p><img alt="leonardo" height="249" src="https://upload
 ```
 
 _Ensure that there your app is wrapped in a GridLayout. See demo for an example_
-Then, include the text editor & editor's html in your component's html file:
 Include the xmlns:
 
 ```
 xmlns:RIE="@finalsite/rich-text-editor"
 ```
+
+Then, include the text editor & editor's html in your component's html file:
 
 ```
 <RIE:rich-text-editor width="90%" height="200" html="{{ editorContent }}"/>
@@ -88,7 +89,9 @@ xmlns:RIE="@finalsite/rich-text-editor"
 
 #### Use a custom editor
 
+```
 <RichTextEditor width="90%" height="200" html="{{ editorContent }}" bridge="~/assets/js/ckeditor4.js" headAssets="https://cdn.ckeditor.com/4.16.1/standard-all/ckeditor.js"></RichTextEditor>
+```
 
 See demo for usage
 
