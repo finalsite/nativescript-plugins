@@ -1,4 +1,4 @@
-import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType, path, ViewBase } from '@nativescript/core';
+import { knownFolders, Enums, Property, GridLayout, AddChildFromBuilder, StackLayout, Button, PercentLength, ScrollView, Page, GridUnitType, ItemSpec, action, prompt, inputType, LayoutBase, Screen, ContentView, Label, CSSType, path, ViewBase, ProxyViewContainer } from '@nativescript/core';
 import { PromptResult } from '@nativescript/core/ui/dialogs/dialogs-common';
 import { LoadFinishedEventData, ShouldOverrideUrlLoadEventData, WebViewEventData, WebViewExt } from '@nota/nativescript-webview-ext';
 
@@ -245,16 +245,28 @@ export abstract class RichTextEditorCommon extends WebViewExt implements AddChil
 		this._originalParent = this.parent as LayoutBase;
 
 		let finder: ViewBase = this.parent;
+
 		while (finder && !(finder instanceof Page)) {
 			finder = finder.parent;
 		}
 
 		let pg: Page = finder as Page;
-		if (!(pg.content instanceof GridLayout)) {
+
+		if (pg.content instanceof ProxyViewContainer) {
+			const proxyContent: ProxyViewContainer = pg.content as ProxyViewContainer;
+			proxyContent.eachLayoutChild((childLayout) => {
+				if (childLayout instanceof GridLayout) {
+					this._rootLayout = childLayout as GridLayout;
+				}
+			});
+		} else {
+			this._rootLayout = pg.content as GridLayout;
+		}
+
+		if (!(this._rootLayout instanceof GridLayout)) {
 			console.log(`\n********Warning**********\n A root GridLayout is required in order for the RichTextEditor to work correctly\n\n`);
 		}
 		this._currentPage = pg;
-		this._rootLayout = pg.content as GridLayout;
 		this._rootLayout.addChild(this._toolbar);
 		this._webViewSrc = encodeURI(`${knownFolders.currentApp().path}/assets/html/default.html`);
 

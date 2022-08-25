@@ -9,18 +9,19 @@
 		"@angular/platform-browser": "file:../../node_modules/@angular/platform-browser",
 		"@angular/platform-browser-dynamic": "file:../../node_modules/@angular/platform-browser-dynamic",
 		"@angular/router": "file:../../node_modules/@angular/router",
+		"@finalsite/rich-text-editor": "file:../../dist/packages/rich-text-editor",
 		"@nativescript/angular": "file:../../node_modules/@nativescript/angular",
 		"@nativescript/core": "file:../../node_modules/@nativescript/core",
+		"@nota/nativescript-webview-ext": "^8.0.2",
 		"nativescript-theme-core": "file:../../node_modules/nativescript-theme-core",
 		"reflect-metadata": "file:../../node_modules/reflect-metadata",
 		"rxjs": "file:../../node_modules/rxjs",
-		"zone.js": "file:../../node_modules/zone.js",
-		"@finalsite/rich-text-editor": "file:../../dist/packages/rich-text-editor"
+		"zone.js": "file:../../node_modules/zone.js"
 	},
 	"devDependencies": {
 		"@angular/compiler-cli": "file:../../node_modules/@angular/compiler-cli",
 		"@nativescript/android": "7.0.1",
-		"@nativescript/ios": "7.2.0",
+		"@nativescript/ios": "^8.3.3",
 		"@nativescript/webpack": "~4.1.0",
 		"@ngtools/webpack": "file:../../node_modules/@ngtools/webpack",
 		"typescript": "~4.0.0"
