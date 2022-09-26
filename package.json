@@ -24,7 +24,7 @@
 		"@angular/platform-browser-dynamic": "~11.2.0",
 		"@angular/router": "~11.2.0",
 		"@nativescript/angular": "~11.0.0",
-		"@nativescript/core": "~7.2.0",
+		"@nativescript/core": "~8.3.5",
 		"@nativescript/plugin-tools": "1.1.0",
 		"@nativescript/types": "~7.2.0",
 		"@nativescript/webpack": "~4.1.0",
