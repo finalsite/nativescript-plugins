@@ -27,7 +27,7 @@
 		"@nativescript/core": "~7.2.0",
 		"@nativescript/plugin-tools": "1.1.0",
 		"@nativescript/types": "~7.2.0",
-		"@nativescript/webpack": "~4.1.0",
+		"@nativescript/webpack": "~5.0.12",
 		"@ngtools/webpack": "~11.2.0",
 		"husky": "^4.3.0",
 		"nativescript-vue": "~2.8.0",
